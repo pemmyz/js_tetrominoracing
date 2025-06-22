@@ -1,5 +1,7 @@
 # js_tetrominoracing
 
+## Play it now: https://pemmyz.github.io/js_tetrominoracing/
+
 # Tetromino Path Racer - 2 Player
 
 🎮 A fast-paced 2-player browser game where you race vertically while avoiding falling tetrominos! Features bot AI, keyboard controls, and four AI strategies per player.
