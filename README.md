@@ -6,7 +6,10 @@
 
 🎮 A fast-paced 2-player browser game where you race vertically while avoiding falling tetrominos! Features bot AI, keyboard controls, and four AI strategies per player.
 
-![screenshot](screenshot.png) <!-- Add a real screenshot file to your repo -->
+## 📸 Screenshots
+
+### Game
+![Game 1](screenshots/game_1.png)  
 
 ## 🕹️ Gameplay Overview
 
