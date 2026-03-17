@@ -2,19 +2,39 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tetromino Path Racer - 2 Player</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- TOGGLE BUTTON -->
+    <button id="mobile-btn">📱 Fullscreen / Mobile Controls</button>
+
     <h1>Tetromino Path Racer - 2 Player</h1>
+    
+    <!-- GAME CONTAINER -->
     <div id="game-container">
-        <canvas id="gameCanvas"></canvas>
+        <!-- THE SCREEN: Scaled resolution container -->
+        <div id="screen">
+            <canvas id="gameCanvas"></canvas>
+        </div>
     </div>
+    
     <div class="instructions">
         <p><strong>P1 (Left):</strong> <strong>← →</strong> Move | <strong>B</strong>: Toggle Bot | <strong>1-4</strong>: Change Bot AI</p>
         <p><strong>P2 (Right):</strong> <strong>A / D</strong> Move | <strong>N</strong>: Toggle Bot | <strong>7-0</strong>: Change Bot AI (7→1, 8→2, 9→3, 0→4)</p>
         <p><strong>Global:</strong> <strong>↑ ↓</strong>: Adjust Speed | <strong>P</strong>: Pause | Any key to restart on Game Over</p>
+    </div>
+
+    <!-- MOBILE TOUCH CONTROLS OVERLAY -->
+    <div id="mobile-controls">
+        <div id="mobile-dpad">
+            <button id="mobile-left" class="mobile-control-btn">◀</button>
+            <button id="mobile-right" class="mobile-control-btn">▶</button>
+        </div>
+        <div id="mobile-action">
+            <button id="mobile-up" class="mobile-control-btn">▲</button>
+        </div>
     </div>
     
     <script src="script.js"></script>

@@ -2,6 +2,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
+    // --- DOM Elements & State for Mobile ---
+    const mobileToggleBtn = document.getElementById('mobile-btn');
+    const mobileControls = document.getElementById('mobile-controls');
+    const mobileLeftBtn = document.getElementById('mobile-left');
+    const mobileRightBtn = document.getElementById('mobile-right');
+    const mobileUpBtn = document.getElementById('mobile-up');
+    const screenElement = document.getElementById("screen");
+    
+    const keys = { ArrowUp: false, ArrowLeft: false, ArrowRight: false };
+    let lastTouchMove = 0;
+
     // --- Constants & Settings ---
     const NUM_PLAYERS = 2;
     const PLAYER_WIDTH = 400;
@@ -88,11 +99,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             state.players.push(player);
         }
-        console.log("Game Reset!");
     }
 
     // --- Helper Functions ---
-
     function getOccupiedCells(tetromino) {
         const cells = new Set();
         const { shape, x, y } = tetromino;
@@ -194,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             for (let step = 0; step < BOT_SIMULATION_DEPTH; step++) {
                                 const tetRow = startRow + r + step;
                                 if (tetRow >= 0 && tetRow < GRID_HEIGHT) {
-                                    dangerGrid[tetRow][tetCol] += 1; // Accumulate danger for overlapping threats
+                                    dangerGrid[tetRow][tetCol] += 1;
                                 }
                             }
                         }
@@ -205,7 +214,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return dangerGrid;
     }
 
-    // AI 1: BFS (Closest Safe Spot)
     function findBestPath_BFS(player) {
         const dangerGrid = buildDangerGrid(player);
         const playerCol = player.x / BLOCK_SIZE;
@@ -228,10 +236,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
-        return { targetX: player.x, path: [{ x: player.x, y: player.y }] }; // No safe path found
+        return { targetX: player.x, path: [{ x: player.x, y: player.y }] };
     }
 
-    // AI 2: Greedy (Safest Immediate Neighbor)
     function findBestPath_Greedy(player) {
         const dangerGrid = buildDangerGrid(player);
         const playerCol = player.x / BLOCK_SIZE;
@@ -253,7 +260,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return { targetX: bestCol * BLOCK_SIZE, path };
     }
     
-    // AI 3: Center-Hugger (Weighted Best Path)
     function findBestPath_CenterHugger(player) {
         const dangerGrid = buildDangerGrid(player);
         const playerCol = player.x / BLOCK_SIZE;
@@ -264,17 +270,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const paths = {};
         costs[playerCol] = 0;
         paths[playerCol] = [playerCol];
-        const queue = [{col: playerCol, cost: 0}]; // Priority queue
+        const queue = [{col: playerCol, cost: 0}];
         
         while(queue.length > 0) {
-            queue.sort((a, b) => a.cost - b.cost); // Simulate priority queue
+            queue.sort((a, b) => a.cost - b.cost);
             const {col: u} = queue.shift();
             
             [-1, 1].forEach(dir => {
                 const v = u + dir;
                 if (v >= 0 && v < GRID_WIDTH_PER_PLAYER) {
                     const danger = dangerGrid[playerRow][v] + (playerRow > 0 ? dangerGrid[playerRow - 1][v] : 0);
-                    const costToMove = 1 + (danger * 10) + (Math.abs(v - center) * 0.2); // Danger is high cost
+                    const costToMove = 1 + (danger * 10) + (Math.abs(v - center) * 0.2); 
                     if (costs[u] + costToMove < costs[v]) {
                         costs[v] = costs[u] + costToMove;
                         paths[v] = [...paths[u], v];
@@ -298,10 +304,9 @@ document.addEventListener('DOMContentLoaded', () => {
              const fullPath = paths[bestTarget].map(col => ({ x: col * BLOCK_SIZE, y: playerRow * BLOCK_SIZE }));
              return { targetX: bestTarget * BLOCK_SIZE, path: fullPath };
         }
-        return findBestPath_Greedy(player); // Fallback if no perfectly safe path
+        return findBestPath_Greedy(player);
     }
 
-    // AI 4: Opportunist (Finds Widest Safe Gap)
     function findBestPath_Opportunist(player) {
         const dangerGrid = buildDangerGrid(player);
         const playerRow = player.y / BLOCK_SIZE;
@@ -323,10 +328,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const targetCol = Math.floor(bestStart + maxLength / 2);
             return findBestPath_BFS_to_Target(player, targetCol, dangerGrid);
         }
-        return findBestPath_Greedy(player); // Fallback to survival
+        return findBestPath_Greedy(player);
     }
     
-    // Helper for AI 4 to find a path to a specific target
     function findBestPath_BFS_to_Target(player, targetCol) {
         const playerCol = player.x / BLOCK_SIZE;
         const playerRow = player.y / BLOCK_SIZE;
@@ -346,9 +350,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
-        return { targetX: player.x, path: [{ x: player.x, y: player.y }] }; // Should not fail
+        return { targetX: player.x, path: [{ x: player.x, y: player.y }] };
     }
-
 
     // --- Drawing Functions ---
     function drawPlayerArea(player) {
@@ -424,7 +427,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillStyle = COLORS.WHITE;
         ctx.font = "24px sans-serif";
         ctx.textAlign = "center";
-        // Lowered speed indicator position
         ctx.fillText(`Speed: ${state.speedMultiplier.toFixed(1)}x`, SCREEN_WIDTH / 2, 60);
         
         if (state.gamePaused || state.overallGameOver) {
@@ -443,7 +445,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
-
 
     // --- Game Logic & Loop ---
     function updatePlayer(player, timestamp) {
@@ -473,12 +474,20 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (checkCollision(player)) {
             player.gameOver = true;
-            console.log(`Player ${player.id + 1} has lost!`);
         }
     }
 
     function update(timestamp) {
-        if (state.overallGameOver) return; // Completely freeze if game is over
+        if (state.overallGameOver) return; 
+
+        // --- Handle Mobile Touch Holds ---
+        if (timestamp - lastTouchMove > 130) { 
+            if (keys['ArrowLeft']) simulateKeydown('ArrowLeft');
+            if (keys['ArrowRight']) simulateKeydown('ArrowRight');
+            if (keys['ArrowUp']) simulateKeydown('ArrowUp');
+            lastTouchMove = timestamp;
+        }
+        // ---------------------------------
 
         const currentMoveInterval = INITIAL_MOVE_INTERVAL / Math.max(0.01, state.speedMultiplier);
         
@@ -516,7 +525,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('keydown', (e) => {
         const key = e.key.toLowerCase();
         
-        // Prevent default browser action for game keys
         if (["arrowup", "arrowdown", "arrowleft", "arrowright", "p", "b", "n", "a", "d", " "].includes(key) || (key >= '0' && key <= '9')) {
             e.preventDefault();
         }
@@ -553,15 +561,85 @@ document.addEventListener('DOMContentLoaded', () => {
         if (key === 'n') p2.bot.isActive = !p2.bot.isActive;
         const p2_ai_key = parseInt(key);
         if (p2_ai_key >= 7 && p2_ai_key <= 9) {
-            p2.bot.algorithm = p2_ai_key - 6; // Map 7,8,9 to 1,2,3
+            p2.bot.algorithm = p2_ai_key - 6; 
         } else if (key === '0') {
-            p2.bot.algorithm = 4; // Map 0 to 4
+            p2.bot.algorithm = 4;
         }
 
         // Global controls
         if (key === 'arrowup') state.speedMultiplier = Math.min(MAX_SPEED_MULTIPLIER, state.speedMultiplier + SPEED_INCREMENT);
         if (key === 'arrowdown') state.speedMultiplier = Math.max(MIN_SPEED_MULTIPLIER, state.speedMultiplier - SPEED_INCREMENT);
     });
+
+
+    // --- MOBILE SCREEN SCALING & SETUP ---
+    function scaleGame() {
+        const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+        if (isFullscreen) {
+            // Updated to precisely match the canvas 800x800 size internally 
+            const baseWidth = 800;
+            const baseHeight = 800;
+            
+            const scale = Math.min(window.innerWidth / baseWidth, window.innerHeight / baseHeight);
+            screenElement.style.transform = `scale(${scale})`;
+            document.body.classList.add('mobile-mode'); 
+        } else {
+            screenElement.style.transform = 'none'; 
+            document.body.classList.remove('mobile-mode');
+        }
+    }
+
+    function goFull() {
+        const el = document.documentElement;
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    }
+
+    window.addEventListener("resize", scaleGame);
+    window.addEventListener("fullscreenchange", scaleGame);
+    window.addEventListener("webkitfullscreenchange", scaleGame);
+    scaleGame();
+    if(mobileToggleBtn) mobileToggleBtn.addEventListener('click', goFull);
+
+    // --- Dynamic Input Injection for Touch Buttons ---
+    function simulateKeydown(keyStr) {
+        // Dispatches simulated keypress seamlessly into existing game logic 
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: keyStr }));
+    }
+
+    function setupMobileControls() {
+        if (!mobileControls) return;
+
+        const addControlListener = (element, keyStr) => {
+            const pressKey = (e) => {
+                if(e.cancelable) e.preventDefault(); 
+                if (!keys[keyStr]) {
+                    keys[keyStr] = true;
+                    simulateKeydown(keyStr); // Triggers initial move instantly
+                    lastTouchMove = performance.now(); 
+                }
+            };
+            const releaseKey = (e) => {
+                if(e.cancelable) e.preventDefault();
+                keys[keyStr] = false;
+            };
+
+            element.addEventListener('touchstart', pressKey, { passive: false });
+            element.addEventListener('touchend', releaseKey, { passive: false });
+            element.addEventListener('touchcancel', releaseKey, { passive: false });
+            
+            element.addEventListener('mousedown', pressKey);
+            element.addEventListener('mouseup', releaseKey);
+            element.addEventListener('mouseleave', (e) => {
+                if (e.buttons === 1) { releaseKey(e); }
+            });
+        };
+
+        addControlListener(mobileLeftBtn, 'ArrowLeft'); 
+        addControlListener(mobileRightBtn, 'ArrowRight');
+        addControlListener(mobileUpBtn, 'ArrowUp');    
+    }
+    setupMobileControls();
 
     // --- Initial Setup ---
     canvas.width = SCREEN_WIDTH;
